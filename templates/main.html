@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Scraper App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesMai.css') }}">
+</head>
+<body>
+    <h1 class="headermain">Software Eng. Final Project</h1>    
+    <nav>
+        <ul>
+          <li><a href="/home">Start</a></li>
+          <li><a href="/acknow">Acknowledgement</a></li>
+          <li><a href="/aboutus">About us</a></li>
+        </ul>
+    </nav>
+    <div class="principal">
+        <div class="secondary1">
+            <h2>Querys</h2>
+            <div class="tertiary1">
+                <form action="/home" method="post">
+                    <p class="bold">Location: </p>
+                    <p><input type="text" name="location" value=""/></p>
+                    
+                    <p class="bold">Mode: </p>
+                    <div class="checkbox-locations">
+                        <label class="checkbox-location">
+                            <input type="checkbox" name="mode" value="PARTTIME" id="part-time"> Part-time
+                        </label><br>
+                        <label class="checkbox-location">
+                            <input type="checkbox" name="mode" value="FULLTIME" id="full-time"> Full-time
+                        </label><br>
+                    </div>
+                    
+                    <p class="bold">Technologies: </p>
+                    <div class="checkbox-technology">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="Assembly language" id="assembly"> Assembly language
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="C language" id="c-lang"> C language
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="C# language" id="csharp-lang"> C# language
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="C++ language" id="cpp-lang"> C++ language
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="Python" id="python"> Python
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="MATLAB" id="matlab"> MATLAB
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="Automation" id="automation"> Automation
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="Artificial intelligence" id="ai"> Artificial intelligence
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="Computer vision" id="cv"> Computer vision
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="technologies" value="Arduino" id="arduino"> Arduino
+                        </label>
+                    </div>
+
+                    <p class="bold">Technical Skills: </p>
+                    <div class="checkbox-techskill">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="techskills" value="Welding" id="welding"> Welding
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="techskills" value="Soldering" id="soldering"> Soldering
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="techskills" value="Machining" id="machining"> Machining
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="techskills" value="Mechanics" id="mechanics"> Mechanics
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="techskills" value="Carpentry" id="carpentry"> Carpentry
+                        </label>
+                    </div>
+
+                    <p class="bold">Hard Skills (Robotics): </p>
+                    <div class="checkbox-robotics">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Interface" id="interface"> Interface Design
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Design" id="design"> Design and Assembly
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Patent" id="patent"> Patent Equipment
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Innovation" id="innovation"> Problem Solving
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Analysis" id="analysis"> Problem Analysis
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Integration" id="integration"> Processes Integration
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Models" id="models"> Computational Models
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Automation" id="robotics-automation"> Control Automation
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="Electronics" id="electronics"> Electronics Design
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="robotics" value="HMI" id="hmi"> HMI Programming
+                        </label>
+                    </div>
+
+                    <p class="bold">Hard Skills (Embedded): </p>
+                    <div class="checkbox-embedded">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Microcontrollers" id="microcontrollers"> Microcontrollers & Microprocessors
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Firmware" id="firmware"> Firmware Development
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Hardware" id="hardware"> Hardware Design
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="RTOS" id="rtos"> RTOS
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Peripherals" id="peripherals"> Peripheral Interface
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Optimization" id="optimization"> Code Optimization
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Sensors" id="sensors"> Sensors & Actuators
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Protocols" id="protocols"> Communication Protocols
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Automation" id="embedded-automation"> Test Automation
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="embedded" value="Simulation" id="simulation"> Design & Simulation Tools
+                        </label>
+                    </div>
+
+                    <p class="bold">Soft Skills: </p>
+                    <div class="checkbox-softskill">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="softskills" value="Critical Thinking" id="critical-thinking"> Critical Thinking
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="softskills" value="Decision making" id="decision-making"> Decision making
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="softskills" value="Troubleshooting" id="troubleshooting"> Troubleshooting
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="softskills" value="Teamwork" id="teamwork"> Teamwork
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="softskills" value="Leadership" id="leadership"> Leadership
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="
+                            softskills" value="Bilingual" id="bilingual"> Bilingual
+                        </label>
+                    </div>
+                    <p><button type="submit" class="btn-submit">Submit</button></p>
+                </form>
+            </div>
+        </div>
+        <div class="secondary2">
+            <h2>Results</h2>
+            <div class="tertiary2">
+                {% if jobs %}
+                <ul>
+                    {% for title, job in jobs.items() %}
+                    <li>
+                        <h3>{{ title }}</h3>
+                        <p><strong>Company:</strong> {{ job['Company'] }}</p>
+                        <p><strong>Place:</strong> {{ job['Place'] }}</p>
+                        <p><strong>Salary:</strong> {{ job['Salary'] }}</p>
+                        <p><strong>Type:</strong> {{ job['type'] }}</p>
+                        <p><strong>Published:</strong> {{ job['Published'] }}</p>
+                        <!-- Agregar más detalles según sea necesario -->
+                        <p><strong>URLs:</strong>
+                            <ul>
+                                {% for url in job['URLs'] %}
+                                <li><a href="{{ url }}" target="_blank">Option {{ loop.index }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </p>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p></p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
