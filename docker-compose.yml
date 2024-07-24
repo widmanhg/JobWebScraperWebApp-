@@ -1,0 +1,23 @@
+# Specify the version of Docker Compose
+version: '3'
+
+# Define services
+services:
+  # Define the web app service
+  webapp:
+    # Build the Docker image from the current directory
+    build: .
+
+    # Map port 5000 on the host to port 5000 on the container
+    ports:
+      - "5000:5000"
+
+    # Mount the current directory on the host to /app in the container
+    # This allows you to change the source code on the host and have it
+    # immediately visible in the container without needing to rebuild the image
+    volumes:
+      - .:/app
+
+    # Set environment variables for the container
+    environment:
+      - FLASK_ENV=development
