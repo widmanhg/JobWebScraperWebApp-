@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Scraper App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/stylesMai.css') }}">
+    <script>
+        function validateForm() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            let checked = false;
+            checkboxes.forEach((checkbox) => {
+                if (checkbox.checked) {
+                    checked = true;
+                }
+            });
+
+            if (!checked) {
+                alert("Please select at least one checkbox.");
+                return false;
+            }
+            return true;
+        }
+    </script>
 </head>
 <body>
     <h1 class="headermain">Software Eng. Final Project</h1>    
@@ -19,17 +36,17 @@
         <div class="secondary1">
             <h2>Querys</h2>
             <div class="tertiary1">
-                <form action="/home" method="post">
+                <form action="/home" method="post" onsubmit="return validateForm()">
                     <p class="bold">Location: </p>
                     <p><input type="text" name="location" value=""/></p>
                     
                     <p class="bold">Mode: </p>
                     <div class="checkbox-locations">
                         <label class="checkbox-location">
-                            <input type="checkbox" name="mode" value="PARTTIME" id="part-time"> Part-time
+                            <input type="checkbox" name="mode" value="parttime" id="part-time"> Part-time
                         </label><br>
                         <label class="checkbox-location">
-                            <input type="checkbox" name="mode" value="FULLTIME" id="full-time"> Full-time
+                            <input type="checkbox" name="mode" value="fulltime" id="full-time"> Full-time
                         </label><br>
                     </div>
                     
@@ -193,7 +210,6 @@
                         <p><strong>Salary:</strong> {{ job['Salary'] }}</p>
                         <p><strong>Type:</strong> {{ job['type'] }}</p>
                         <p><strong>Published:</strong> {{ job['Published'] }}</p>
-                        <!-- Agregar más detalles según sea necesario -->
                         <p><strong>URLs:</strong>
                             <ul>
                                 {% for url in job['URLs'] %}

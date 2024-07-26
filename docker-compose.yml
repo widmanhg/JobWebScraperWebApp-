@@ -21,3 +21,11 @@ services:
     # Set environment variables for the container
     environment:
       - FLASK_ENV=development
+
+    # Cap_add and cap_drop allow you to specify kernel capabilities to add or drop.
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
+    security_opt:
+      - apparmor:unconfined
