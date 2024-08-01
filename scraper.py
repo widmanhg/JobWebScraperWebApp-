@@ -1,5 +1,8 @@
-import aiohttp, asyncio, json, time
-from bs4 import BeautifulSoup
+import aiohttp
+import asyncio
+import json
+import time
+import urllib.parse
 from fake_useragent import UserAgent
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -10,142 +13,150 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
 class JobScraper:
-    def __init__(self, skills, place, type):
+    def __init__(self, skills, place, job_type):
         self.jobs = {}
         self.skills = skills
         self.place = place
-        self.type = type
-        self.user_agent = UserAgent()
+        self.job_type = job_type
+        self.user_agent = UserAgent(platforms='pc')
 
-        #Selenium optioms
+        # Generate a random User Agent
+        user_agent_str = self.user_agent.random
+        print(f"User-Agent: {user_agent_str}")
+
+        # Setting Selenium options
         options = chromeoptions()
         options.add_argument('--incognito')
-        options.add_argument('--headless') 
-        options.add_argument('--disable-gpu') 
-        options.add_argument('--no-sandbox')  
-        options.add_argument('--disable-dev-shm-usage')  
-        options.add_argument(f'user-agent={self.user_agent.random}')  
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument(f'user-agent={user_agent_str}')
         self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
     async def get_info(self, session, url):
-        async with session.get(url, headers={'User-Agent': self.user_agent.random}) as response:
+        user_agent_str = self.user_agent.random
+        #print(f"User-Agent for aiohttp request: {user_agent_str}")
+        async with session.get(url, headers={'User-Agent': user_agent_str}) as response:
             try:
                 response.raise_for_status()
-                text = await response.text()
-                soup = BeautifulSoup(text, 'html.parser')
-                
+
                 try:
-                    # Open the main page in Selenium
+                    # Open the website with Selenium
                     self.driver.get(url)
+
+                    # Waiting for the first element job to load [Max. 10 seconds]
                     WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'div.gws-plugins-horizon-jobs__tl-lif'))
+                        # EC.presence_of_element_located((By.XPATH, '//*[@id="rso"]'))
+                        EC.presence_of_element_located((By.XPATH, '//*[@id="rso"]/div/div/div/div/div[2]/div/div/div/div/infinity-scrolling/div[1]/div[1]/div/div[1]'))
                     )
                 except Exception as e:
-                    #print(f"Timeout waiting for the main page: {e}")
-                    #print(self.driver.page_source)  # Print the page source for debugging
+                    print(f"*** (47) Timeout waiting to load the first job of the page: {e}")
                     return
 
-                # Clicking one job to load more jobs
-                job_elements = self.driver.find_elements(By.CSS_SELECTOR, 'div.gws-plugins-horizon-jobs__tl-lif')
-                job_elements[0].click()
-                try: 
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.ID, 'gws-plugins-horizon-jobs__job_details_page'))
-                    )
-                except Exception as e:
-                    print(f"Timeout waiting for job details page: {e}")
-                    #print(self.driver.page_source)  # Print the page source for debugging
-                    return
+                #print('...(79) Collecting jobs')
 
-                # Parsing the HTML with BeautifulSoup
-                page_source = self.driver.page_source
-                soup = BeautifulSoup(page_source, 'html.parser')
+                # Clicking 10 jobs to open their description
+                for i in range(10):
+                    job_elements = self.driver.find_elements(By.XPATH, '//*[@class="L5NwLd"]')
+                    if i < len(job_elements):
+                        job_elements[i].click()
+                        time.sleep(2)
+                        #print(f'...(55) Job #{i+1}/10 clicked')
 
-                try:
-                    #Collecting all the jobs and extract their information with BS4
-                    elements = soup.select('#gws-plugins-horizon-jobs__job_details_page ')
-
-                    for element in elements:
-                        try:
-                            title = element.select_one('div.sH3zFd > h2').text.strip()
-                        except:
+                        try:  # Extracting job details using Selenium
+                            title = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/h1').text.strip()
+                            #print(f'Title: {title}')
+                        except Exception as e:
                             title = 'Error'
-                            print(f'Error on title: {e}')
+                            #print(f'Error on title: {e}')
+
                         try:
-                            company = element.select_one('div.nJlQNd.sMzDkb').text.strip()
+                            company = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[1]/div/div[1]/div/div[2]/span/div').text.strip()
                         except:
                             company = 'Error'
-                        try:
-                            place = element.select_one('div.tJ9zfc > div:nth-child(2)').text.strip()
-                        except:
-                            place = 'Not mentioned'
-                        try:
-                            salary = element.select_one('div.I2Cbhb.bSuYSc > span.LL4CDc').text.strip()
-                        except:
-                            salary = 'Not mentioned'
-                        try:
-                            shedule = element.select_one('span.LL4CDc[aria-label*="Tipo"]').text.strip()
-                        except:
-                            shedule = 'Not mentioned'
-                        try:
-                            published = element.select_one('span.LL4CDc[aria-label^="Publicado"]').text.strip()
-                        except:
-                            published = 'Weeks ago'
-                        try:
-                            description = element.select_one('#gws-plugins-horizon-jobs__job_details_page > div > div:nth-child(5) > g-expandable-container > div > div > div > span').text.strip() #Long description
-                        except:
-                            description = element.select_one('#gws-plugins-horizon-jobs__job_details_page > div > div:nth-child(5) > g-expandable-container > div > div > span').text.strip() #Short description
 
                         try:
-                            link_container = element.select_one('div.B8oxKe.BQC79e.xXyUwe')
-                            job_urls = []
-                            links = link_container.find_all('a') if link_container else []
-                            for link in links:
-                                job_urls.append(link.get('href'))
+                            details = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/div[1]').text.strip()
+                            split_text = [part.strip() for part in details.split('•')]
+                            place = split_text[1]
                         except:
-                            job_urls = 'Error'
-                        
-                        #Saving the jobs on a dictionary
+                            place = 'Not mentioned'
+
+                        try:
+                            salary = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "MXN"))]/span[@class="RcZtZb"]').text.strip()
+                        except Exception as e:
+                            salary = 'Not mentioned'
+
+                        try:
+                            job_type = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[not(contains(., "MXN")) and not(contains(., "hace")) and not(contains(., "título"))]/span[@class="RcZtZb"]').text.strip()
+                            if job_type == '': 
+                                job_type = 'Not mentioned'
+                        except Exception as e:
+                            job_type = 'Not mentioned'
+
+                        try:
+                            published = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "hace"))]/span[@class="RcZtZb"]').text.strip()
+                        except Exception as e:
+                            published = f'Weeks ago: {e}'
+
+                        try:
+                            short_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[1]').text.strip()
+                            try:
+                                long_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[3]').text.strip()
+                                description = short_description + long_description
+                            except:
+                                description = short_description
+                        except Exception as e:
+                            description = f'No description - Error: {e}'
+
+                        try:
+                            links_container = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[4]')
+                            job_urls = []
+                            links = links_container.find_elements(By.TAG_NAME, 'a')
+                            for link in links:
+                                href = link.get_attribute('href')
+                                job_urls.append(href)
+                        except Exception as e:
+                            job_urls = f'Error: {e}'
+
+                        # Saving the job information
                         self.jobs[title] = {
                             'Company': company,
                             'Place': place,
                             'Salary': salary,
-                            'type': shedule,
+                            'Type': job_type,
                             'Published': published,
                             'URLs': job_urls,
                             'Description': description
                         }
 
-                except Exception as e:
-                    print(f"Error occurred while getting job: {e}")
-
-
             except aiohttp.ClientResponseError as e:
-                print(f"Failed to access the page. ClientResponseError: {e}")
+                print(f"*** (137) Failed to access the page. ClientResponseError: {e}")
 
-    # Async function
     async def get_all_jobs(self):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
-            queries = f'{self.skills},{self.place}'
-            url = f'https://www.google.com/search?q={queries.replace(",", "+").replace(" ", "+")}&oq=trab&ibp=htl;jobs&sa=X#htivrt=jobs&fpstate=tldetail&htichips=employment_type:{self.type}&htischips=employment_type;{self.type}'
-            print(url)
-            await self.get_info(session, url)
+            tasks = []
+            skills_pairs = [self.skills[i:i + 2] for i in range(0, len(self.skills), 2)]
+            for pair in skills_pairs:
+                queries = ' '.join(pair)
+                if self.place:
+                    queries += f" {self.place}"
+                if self.job_type:
+                    queries += f" {self.job_type}"
 
-            # If no jobs found for the city, try without the city
-            if not self.jobs:
-                queries = f'{self.skills}'
-                url = f'https://www.google.com/search?q={queries.replace(",", "+").replace(" ", "+")}&oq=trab&ibp=htl;jobs&sa=X#htivrt=jobs&fpstate=tldetail&htichips=employment_type:{self.type}&htischips=employment_type;{self.type}'
-                print(f"Retrying without '{self.place}', new url: {url}")
-                await self.get_info(session, url)
-        
-    # Saving the results on a JSON file [jobs.json]
+                encoded_queries = urllib.parse.quote(queries)
+                url = f'https://www.google.com/search?&udm=8&q={encoded_queries}&jbr=sep:0'
+                #print(url)
+                tasks.append(self.get_info(session, url))
+            await asyncio.gather(*tasks)
+
     def save_to_json(self, output_file='jobs.json'):
         with open(output_file, 'w', encoding='utf-8') as json_file:
             json.dump(self.jobs, json_file, indent=4, ensure_ascii=False)
 
-# Main function
-async def main(skills,place, type):
-    scraper = JobScraper(skills, place, type)
+async def main(skills, place, job_type):
+    scraper = JobScraper(skills, place, job_type)
     await scraper.get_all_jobs()
     scraper.save_to_json()
     scraper.driver.quit()
@@ -156,11 +167,21 @@ if __name__ == "__main__":
     print('Loading...')
 
     # User parameters [skills - type - place]:
-    qskills = 'python'   #Jobs Skills [example: python sql], just write the main words.
-    qplace = 'Canada'    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
-    qtype = 'FULLTIME' #Type of job [FULLTIME or PARTTIME], if you don't insert an option the scraper would show the trending jobs.
+    qskills = ['python', 'sql', 'java', 'c++', 'javascript', 'html', 'css', 'react', 'nodejs', 'docker']
+    qplace = ''    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
+    qtype = '' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
 
-    asyncio.run(main(skills=qskills, place=qplace, type=qtype))
+    asyncio.run(main(skills=qskills, place=qplace, job_type=qtype))
 
     fin = time.time()
     print(f"Complete: {fin - inicio} seconds")
+
+
+    '''
+    
+NEW VERSION OF THE SCRAPER:
+    -Divided Skills into Pairs: The skills list is split into pairs, and each pair is used to build a search query.
+    -Asynchronous Scraping: The script asynchronously handles multiple queries using asyncio.gather.
+    -Error Handling: The script attempts to scrape up to 10 job listings per pair and handles cases where fewer than 10 jobs are available.
+    
+    '''
