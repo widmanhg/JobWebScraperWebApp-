@@ -1,7 +1,8 @@
 import unittest
 import asyncio
-from scraper import JobScraper
+import json
 import aiohttp
+from scraper import JobScraper
 
 class TestJobScraper(unittest.TestCase):
     async def run_scraper(self, skills, place, job_type):
@@ -9,24 +10,32 @@ class TestJobScraper(unittest.TestCase):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
             queries = f'{skills},{place}'
             url = f'https://www.google.com/search?q={queries.replace(",", "+").replace(" ", "+")}&oq=trab&ibp=htl;jobs&sa=X#htivrt=jobs&fpstate=tldetail&htichips=employment_type:{job_type}&htischips=employment_type;{job_type}'
-            await scraper.get_info(session, url)
-        scraper.driver.quit()
-        return scraper.jobs #Run the scraper
+            
+            # Print the url request
+            print(f"Request URL: {url}")
 
-# this function extract the skills for the job
+            try:
+                await scraper.get_info(session, url)
+            except Exception as e:
+                print(f"Error during scraping: {e}")
+
+        scraper.driver.quit()
+        return scraper.jobs # Run the scraper
+
     def test_get_info(self):
-        skills = ""
-        place = ""
+        skills = 'python, java, C++'
+        place = "CDMX"
         job_type = "FULLTIME"
 
         jobs = asyncio.run(self.run_scraper(skills, place, job_type))
 
-        # It verifies of there is a dictoniary, if not will give an error
+        # Saves the data into a json
+        with open('jobs_data.json', 'w', encoding='utf-8') as file:
+            json.dump(jobs, file, indent=4, ensure_ascii=False)
+
+        # Check if the data is saved and if there is data provided
         self.assertIsInstance(jobs, dict)
         self.assertTrue(len(jobs) > 0, "No jobs found")
-        
-        #print the jobs
-        print("Jobs data:\n", jobs)
 
 if __name__ == '__main__':
     unittest.main()
