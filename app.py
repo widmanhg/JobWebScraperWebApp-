@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 import asyncio
 from scraper import JobScraper
+import aiohttp
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -51,21 +53,35 @@ def home():
 
         # Creating an Async function for the scraper to run apart from the web app.
         async def run_scraper():
-
-            # Saving an instance of the main class from the scraper script in a variable.
-            scraper = JobScraper(query_skills, query_place, query_modes)
-
-            # Using await to let other functions work while this finishes.
-            await scraper.get_all_jobs()
-
-            # Becoming global an empty dictionary created before to save the scraped jobs.
             global jobs_data
-            jobs_data = scraper.jobs
+            jobs_data = {}
 
-            # The browser driver that the scraper was using to access web pages is closed.
+            async with aiohttp.ClientSession() as aio_session:
+                scraper = JobScraper(query_skills, query_place, query_modes)
+
+                # Generar una única URL basada en las habilidades, lugar y modos seleccionados
+                queries = query_skills
+                if query_place:
+                    queries += f" {query_place}"
+                if query_modes:
+                    queries += f" {query_modes}"
+
+                encoded_queries = urllib.parse.quote(queries)
+                url = f'https://www.google.com/search?&udm=8&q={encoded_queries}&jbr=sep:0'
+                print(f"Generated URL: {url}")
+                
+                # Llamar al método get_info con la URL generada
+                try:
+                    await scraper.get_info(aio_session, url)
+                except Exception as e:
+                    print(f"Error during scraping: {e}")
+
             scraper.driver.quit()
 
-            # Printing the founded Jobs by the scraper.
+            # Collect the jobs data
+            jobs_data = scraper.jobs
+
+            # Printing the found Jobs by the scraper.
             print("Jobs found:")
             for job_title, job_details in jobs_data.items():
                 print(f"Title: {job_title}, Details: {job_details}")
@@ -74,11 +90,14 @@ def home():
             session['scraping_done'] = True
 
         # Running the Async function with asyncio.run to let it manage the loop of events.
-        asyncio.run(run_scraper())
+        try:
+            asyncio.run(run_scraper())
+        except Exception as e:
+            print(f"Error running the scraper: {e}")
+            flash('An error occurred during the scraping process. Please try again.')
 
         # Rendering the main html template with the scraped jobs in the metadata for visualization.
         return render_template("main.html", jobs=jobs_data)
-    
     elif request.method == 'GET':
         # Check if scraping has already been done
         if session.get('scraping_done'):
