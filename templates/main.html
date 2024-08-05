@@ -56,7 +56,7 @@
                             <input type="checkbox" name="technologies" value="Assembly language" id="assembly"> Assembly language
                         </label>
                         <label class="checkbox-item">
-                            <input type="checkbox" name="technologies" value="C language" id="c-lang"> C language
+                            <input type="checkbox" name="technologies" value="C" id="c-lang"> C
                         </label>
                         <label class="checkbox-item">
                             <input type="checkbox" name="technologies" value="C# language" id="csharp-lang"> C# language
@@ -189,8 +189,7 @@
                             <input type="checkbox" name="softskills" value="Leadership" id="leadership"> Leadership
                         </label>
                         <label class="checkbox-item">
-                            <input type="checkbox" name="
-                            softskills" value="Bilingual" id="bilingual"> Bilingual
+                            <input type="checkbox" name="softskills" value="Bilingual" id="bilingual"> Bilingual
                         </label>
                     </div>
                     <p><button type="submit" class="btn-submit">Submit</button></p>
@@ -200,6 +199,15 @@
         <div class="secondary2">
             <h2>Results</h2>
             <div class="tertiary2">
+                {% with messages = get_flashed_messages(with_categories=True) %}
+                    {% if messages %}
+                        <ul class="flash-messages">
+                            {% for category, message in messages %}
+                                <li class="{{ category }}">{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
                 {% if jobs %}
                 <ul>
                     {% for title, job in jobs.items() %}
@@ -211,11 +219,15 @@
                         <p><strong>Type:</strong> {{ job['type'] }}</p>
                         <p><strong>Published:</strong> {{ job['Published'] }}</p>
                         <p><strong>URLs:</strong>
+                            {% if job['URLs'] %}
                             <ul>
                                 {% for url in job['URLs'] %}
                                 <li><a href="{{ url }}" target="_blank">Option {{ loop.index }}</a></li>
                                 {% endfor %}
                             </ul>
+                            {% else %}
+                            <p>No URLs available</p>
+                            {% endif %}
                         </p>
                     </li>
                     {% endfor %}
