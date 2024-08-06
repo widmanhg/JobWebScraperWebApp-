@@ -4,7 +4,7 @@ import time
 from scraper import scraper_main
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = 'luisdavidoscarmoigerardo'
 
 # Global variable to save the Jobs founded.
 jobs_data = {}
@@ -44,11 +44,8 @@ def home():
 
         # Checking in terminal if the values were correctly collected.
         print(query_place)
-        print(type(query_place))
         print(query_modes)
-        print(type(query_modes))
         print(query_skills)
-        print(type(query_skills))
 
         # Store user inputs in the session
         session['query_place'] = query_place
