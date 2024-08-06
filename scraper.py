@@ -42,7 +42,7 @@ class JobScraper:
                 async with session.get(url, headers={'User-Agent': user_agent_str}) as response:
                     response.raise_for_status()
                     self.driver.get(url)
-                    WebDriverWait(self.driver, 20).until(
+                    WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.XPATH, '//*[@id="rso"]/div/div/div/div/div[2]/div/div/div/div/infinity-scrolling/div[1]/div[1]/div/div[1]'))
                     )
                     break
