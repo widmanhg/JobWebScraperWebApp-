@@ -51,7 +51,7 @@ class JobScraper:
                         EC.presence_of_element_located((By.XPATH, '//*[@id="rso"]/div/div/div/div/div[2]/div/div/div/div/infinity-scrolling/div[1]/div[1]/div/div[1]'))
                     )
                 except Exception as e:
-                    print(f"*** (47) Timeout waiting to load the first job of the page: {e}")
+                    #print(f"*** (47) Timeout waiting to load the first job of the page: {e}")
                     return
 
                 #print('...(79) Collecting jobs')
@@ -68,8 +68,7 @@ class JobScraper:
                             title = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/h1').text.strip()
                             #print(f'Title: {title}')
                         except Exception as e:
-                            title = 'Error'
-                            #print(f'Error on title: {e}')
+                            continue
 
                         try:
                             company = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[1]/div/div[1]/div/div[2]/span/div').text.strip()
@@ -139,6 +138,7 @@ class JobScraper:
             tasks = []
             skills_pairs = [self.skills[i:i + 2] for i in range(0, len(self.skills), 2)]
             for pair in skills_pairs:
+
                 queries = ' '.join(pair)
                 if self.place:
                     queries += f" {self.place}"
@@ -155,21 +155,26 @@ class JobScraper:
         with open(output_file, 'w', encoding='utf-8') as json_file:
             json.dump(self.jobs, json_file, indent=4, ensure_ascii=False)
 
+    def return_dict(self):
+        return json.dumps(self.jobs, indent=4, ensure_ascii=False)
+
 async def main(skills, place, job_type):
     scraper = JobScraper(skills, place, job_type)
     await scraper.get_all_jobs()
-    scraper.save_to_json()
     scraper.driver.quit()
+    return scraper.return_dict()
+
 
 # ------------------ T E S T I N G -----------
-if __name__ == "__main__":
+
+'''if __name__ == "__main__":
     inicio = time.time()
     print('Loading...')
 
     # User parameters [skills - type - place]:
     qskills = ['python', 'sql', 'java', 'c++', 'javascript', 'html', 'css', 'react', 'nodejs', 'docker']
-    qplace = ''    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
-    qtype = '' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
+    qplace = 'cdmx'    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
+    qtype = 'Tiempo completo' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
 
     asyncio.run(main(skills=qskills, place=qplace, job_type=qtype))
 
@@ -177,11 +182,12 @@ if __name__ == "__main__":
     print(f"Complete: {fin - inicio} seconds")
 
 
-    '''
+
     
 NEW VERSION OF THE SCRAPER:
     -Divided Skills into Pairs: The skills list is split into pairs, and each pair is used to build a search query.
     -Asynchronous Scraping: The script asynchronously handles multiple queries using asyncio.gather.
     -Error Handling: The script attempts to scrape up to 10 job listings per pair and handles cases where fewer than 10 jobs are available.
+    -The code returns a dictionary with all the job results.
     
     '''
