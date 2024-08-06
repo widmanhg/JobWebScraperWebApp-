@@ -147,7 +147,7 @@ class JobScraper:
 
                 encoded_queries = urllib.parse.quote(queries)
                 url = f'https://www.google.com/search?&udm=8&q={encoded_queries}&jbr=sep:0'
-                #print(url)
+                print(url)
                 tasks.append(self.get_info(session, url))
             await asyncio.gather(*tasks)
 
