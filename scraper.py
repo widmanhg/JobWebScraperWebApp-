@@ -148,7 +148,7 @@ class JobScraper:
     def return_dict(self):
         return json.dumps(self.jobs, indent=4, ensure_ascii=False)
 
-async def main(skills, place, job_type):
+async def scraper_main(skills, place, job_type):
     scraper = JobScraper(skills, place, job_type)
     await scraper.get_all_jobs()
     scraper.driver.quit()
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     qplace = 'CDMX'    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
     qtype = 'Tiempo completo' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
 
-    asyncio.run(main(skills=qskills, place=qplace, job_type=qtype))
+    asyncio.run(scraper_main(skills=qskills, place=qplace, job_type=qtype))
 
     fin = time.time()
     print(f"Complete: {fin - inicio} seconds")
