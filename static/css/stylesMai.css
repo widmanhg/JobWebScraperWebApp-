@@ -52,7 +52,7 @@ a:hover {
     display: flex;
     align-items: start;
     padding-top: 30px;
-    height: 1220px;
+    height: 1050px;
 }
 
 .secondary1 {
@@ -96,7 +96,7 @@ a:hover {
     display: flex;
     align-items: start;
     padding-top: 30px;
-    min-height: 940px;
+    min-height: 825px;
     min-width: 560px;
     max-width: 560px;
     box-shadow: 10px 10px 40px #8a53cd;

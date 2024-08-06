@@ -36,7 +36,7 @@ class JobScraper:
 
     async def get_info(self, session, url, skill):
         user_agent_str = self.user_agent.random
-        retries = 3
+        retries = 1
         for attempt in range(retries):
             try:
                 async with session.get(url, headers={'User-Agent': user_agent_str}) as response:
@@ -138,6 +138,7 @@ class JobScraper:
 
                 encoded_queries = urllib.parse.quote(queries)
                 url = f'https://www.google.com/search?&udm=8&q={encoded_queries}&jbr=sep:0'
+                print(url)
                 await self.get_info(session, url, skill)
                 await asyncio.sleep(2)  # Adding delay to reduce request frequency
 
