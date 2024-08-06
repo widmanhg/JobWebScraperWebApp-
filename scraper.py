@@ -97,7 +97,7 @@ class JobScraper:
                         try:
                             published = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "hace"))]/span[@class="RcZtZb"]').text.strip()
                         except Exception as e:
-                            published = f'Weeks ago.}'
+                            published = f'Weeks ago.'
 
                         try:
                             short_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[1]').text.strip()
