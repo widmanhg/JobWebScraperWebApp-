@@ -155,11 +155,11 @@ class JobScraper:
         with open(output_file, 'w', encoding='utf-8') as json_file:
             json.dump(self.jobs, json_file, indent=4, ensure_ascii=False)
 
-async def main(skills, place, job_type):
+async def scraper_main(skills, place, job_type):
     scraper = JobScraper(skills, place, job_type)
     await scraper.get_all_jobs()
-    scraper.save_to_json()
     scraper.driver.quit()
+    return scraper.jobs
 
 # ------------------ T E S T I N G -----------
 if __name__ == "__main__":
@@ -168,8 +168,8 @@ if __name__ == "__main__":
 
     # User parameters [skills - type - place]:
     qskills = ['python', 'sql', 'java', 'c++', 'javascript', 'html', 'css', 'react', 'nodejs', 'docker']
-    qplace = ''    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
-    qtype = '' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
+    qplace = 'CDMX'    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
+    qtype = 'Tiempo completo' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
 
     asyncio.run(main(skills=qskills, place=qplace, job_type=qtype))
 
