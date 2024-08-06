@@ -34,112 +34,103 @@ class JobScraper:
         options.add_argument(f'user-agent={user_agent_str}')
         self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=options)
 
-    async def get_info(self, session, url):
+    async def get_info(self, session, url, skill):
         user_agent_str = self.user_agent.random
-        #print(f"User-Agent for aiohttp request: {user_agent_str}")
-        async with session.get(url, headers={'User-Agent': user_agent_str}) as response:
+        retries = 3
+        for attempt in range(retries):
             try:
-                response.raise_for_status()
-
-                try:
-                    # Open the website with Selenium
+                async with session.get(url, headers={'User-Agent': user_agent_str}) as response:
+                    response.raise_for_status()
                     self.driver.get(url)
-
-                    # Waiting for the first element job to load [Max. 10 seconds]
-                    WebDriverWait(self.driver, 10).until(
-                        # EC.presence_of_element_located((By.XPATH, '//*[@id="rso"]'))
+                    WebDriverWait(self.driver, 20).until(
                         EC.presence_of_element_located((By.XPATH, '//*[@id="rso"]/div/div/div/div/div[2]/div/div/div/div/infinity-scrolling/div[1]/div[1]/div/div[1]'))
                     )
-                except Exception as e:
-                    #print(f"*** (47) Timeout waiting to load the first job of the page: {e}")
+                    break
+            except (aiohttp.ClientError, aiohttp.ClientConnectorError) as e:
+                print(f"Attempt {attempt + 1} - Network error: {e}")
+                if attempt == retries - 1:
                     return
+                await asyncio.sleep(5)  # Wait before retrying
+            except Exception as e:
+                print(f"Attempt {attempt + 1} - Timeout waiting to load the first job of the page: {e}")
+                if attempt == retries - 1:
+                    return
+                await asyncio.sleep(5)  # Wait before retrying
 
-                #print('...(79) Collecting jobs')
+        for i in range(3):  # Limit to 3 jobs
+            job_elements = self.driver.find_elements(By.XPATH, '//*[@class="L5NwLd"]')
+            if i < len(job_elements):
+                job_elements[i].click()
+                time.sleep(2)
 
-                # Clicking 10 jobs to open their description
-                for i in range(10):
-                    job_elements = self.driver.find_elements(By.XPATH, '//*[@class="L5NwLd"]')
-                    if i < len(job_elements):
-                        job_elements[i].click()
-                        time.sleep(2)
-                        #print(f'...(55) Job #{i+1}/10 clicked')
+                try:
+                    title = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/h1').text.strip()
+                except:
+                    continue
 
-                        try:  # Extracting job details using Selenium
-                            title = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/h1').text.strip()
-                            #print(f'Title: {title}')
-                        except Exception as e:
-                            continue
+                try:
+                    company = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[1]/div/div[1]/div/div[2]/span/div').text.strip()
+                except:
+                    company = 'Error'
 
-                        try:
-                            company = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[1]/div/div[1]/div/div[2]/span/div').text.strip()
-                        except:
-                            company = 'Error'
+                try:
+                    details = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/div[1]').text.strip()
+                    split_text = [part.strip() for part in details.split('•')]
+                    place = split_text[1]
+                except:
+                    place = 'Not mentioned'
 
-                        try:
-                            details = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[2]/div[1]').text.strip()
-                            split_text = [part.strip() for part in details.split('•')]
-                            place = split_text[1]
-                        except:
-                            place = 'Not mentioned'
+                try:
+                    salary = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "MXN"))]/span[@class="RcZtZb"]').text.strip()
+                except:
+                    salary = 'Not mentioned'
 
-                        try:
-                            salary = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "MXN"))]/span[@class="RcZtZb"]').text.strip()
-                        except Exception as e:
-                            salary = 'Not mentioned'
+                try:
+                    job_type = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[not(contains(., "MXN")) and not(contains(., "hace")) and not(contains(., "título"))]/span[@class="RcZtZb"]').text.strip()
+                    if job_type == '':
+                        job_type = 'Not mentioned'
+                except:
+                    job_type = 'Not mentioned'
 
-                        try:
-                            job_type = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[not(contains(., "MXN")) and not(contains(., "hace")) and not(contains(., "título"))]/span[@class="RcZtZb"]').text.strip()
-                            if job_type == '': 
-                                job_type = 'Not mentioned'
-                        except Exception as e:
-                            job_type = 'Not mentioned'
+                try:
+                    published = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "hace"))]/span[@class="RcZtZb"]').text.strip()
+                except:
+                    published = 'Weeks ago.'
 
-                        try:
-                            published = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[@class="A8mJGd NDuZHe"]/div[@class="LrPjRb"]/div/div[@class="BIB1wf EIehLd fHE6De"]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[@class="JmvMcb"]/div[@class="mLdNec"]/div[(contains(., "hace"))]/span[@class="RcZtZb"]').text.strip()
-                        except Exception as e:
-                            published = f'Weeks ago.'
+                try:
+                    short_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[1]').text.strip()
+                    try:
+                        long_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[3]').text.strip()
+                        description = short_description + long_description
+                    except:
+                        description = short_description
+                except Exception as e:
+                    description = f'No description - Error: {e}'
 
-                        try:
-                            short_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[1]').text.strip()
-                            try:
-                                long_description = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[6]/div/span[3]').text.strip()
-                                description = short_description + long_description
-                            except:
-                                description = short_description
-                        except Exception as e:
-                            description = f'No description - Error.'
+                try:
+                    links_container = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[4]')
+                    job_urls = []
+                    links = links_container.find_elements(By.TAG_NAME, 'a')
+                    for link in links:
+                        href = link.get_attribute('href')
+                        job_urls.append(href)
+                except Exception as e:
+                    job_urls = f'Error: {e}'
 
-                        try:
-                            links_container = self.driver.find_element(By.XPATH, '//*[@id="Sva75c"]/div[2]/div[2]/div/div[2]/c-wiz/div/c-wiz[1]/c-wiz/c-wiz/div[4]')
-                            job_urls = []
-                            links = links_container.find_elements(By.TAG_NAME, 'a')
-                            for link in links:
-                                href = link.get_attribute('href')
-                                job_urls.append(href)
-                        except Exception as e:
-                            job_urls = f'Error: {e}'
-
-                        # Saving the job information
-                        self.jobs[title] = {
-                            'Company': company,
-                            'Place': place,
-                            'Salary': salary,
-                            'Type': job_type,
-                            'Published': published,
-                            'URLs': job_urls,
-                            'Description': description
-                        }
-
-            except aiohttp.ClientResponseError as e:
-                print(f"*** (137) Failed to access the page. ClientResponseError: {e}")
+                self.jobs[title] = {
+                    'Company': company,
+                    'Place': place,
+                    'Salary': salary,
+                    'Type': job_type,
+                    'Published': published,
+                    'URLs': job_urls,
+                    'Description': description
+                }
 
     async def get_all_jobs(self):
         async with aiohttp.ClientSession(connector=aiohttp.TCPConnector()) as session:
-            tasks = []
-            skills_pairs = [self.skills[i:i + 2] for i in range(0, len(self.skills), 2)]
-            for pair in skills_pairs:
-
-                queries = ' '.join(pair)
+            for skill in self.skills:
+                queries = skill
                 if self.place:
                     queries += f" {self.place}"
                 if self.job_type:
@@ -147,30 +138,34 @@ class JobScraper:
 
                 encoded_queries = urllib.parse.quote(queries)
                 url = f'https://www.google.com/search?&udm=8&q={encoded_queries}&jbr=sep:0'
-                print(url)
-                tasks.append(self.get_info(session, url))
-            await asyncio.gather(*tasks)
+                await self.get_info(session, url, skill)
+                await asyncio.sleep(2)  # Adding delay to reduce request frequency
 
     def save_to_json(self, output_file='jobs.json'):
         with open(output_file, 'w', encoding='utf-8') as json_file:
             json.dump(self.jobs, json_file, indent=4, ensure_ascii=False)
 
-async def scraper_main(skills, place, job_type):
+    def return_dict(self):
+        return json.dumps(self.jobs, indent=4, ensure_ascii=False)
+
+async def main(skills, place, job_type):
     scraper = JobScraper(skills, place, job_type)
     await scraper.get_all_jobs()
     scraper.driver.quit()
-    return scraper.jobs
+    return scraper.return_dict()
+
+
 
 # ------------------ T E S T I N G -----------
-
-'''if __name__ == "__main__":
+'''
+if __name__ == "__main__":
     inicio = time.time()
     print('Loading...')
 
     # User parameters [skills - type - place]:
-    qskills = ['python', 'sql', 'java', 'c++', 'javascript', 'html', 'css', 'react', 'nodejs', 'docker']
-    qplace = ''    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
-    qtype = '' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
+    qskills = ['carpintero', 'sql', 'trabajo en equipo', 'c++', 'ensamblador', 'html', 'vendedor', 'react', 'comisiones', 'docker']
+    qplace = 'CDMX'    #City of the job [example: CDMX] , if you don't insert an option the scraper would show the trending jobs.
+    qtype = 'Tiempo completo' #Type of job ['Medio Tiempo' or 'Tiempo completo'], if you don't insert an option the scraper would show the trending jobs.
 
     asyncio.run(main(skills=qskills, place=qplace, job_type=qtype))
 
@@ -178,12 +173,12 @@ async def scraper_main(skills, place, job_type):
     print(f"Complete: {fin - inicio} seconds")
 
 
-
-    
-NEW VERSION OF THE SCRAPER:
-    -Divided Skills into Pairs: The skills list is split into pairs, and each pair is used to build a search query.
+ RESUME:
     -Asynchronous Scraping: The script asynchronously handles multiple queries using asyncio.gather.
-    -Error Handling: The script attempts to scrape up to 10 job listings per pair and handles cases where fewer than 10 jobs are available.
-    -The code returns a dictionary with all the job results.
+    -Job Limit: The loop in get_info is adjusted to scrape a maximum of 3 jobs per skill.
+    -Skill Processing: The get_all_jobs method now processes one skill at a time, creating a URL and adding the task for each skill individually.
+    -Slight Refactoring: Added a skill parameter to the get_info method to keep track of which skill the jobs are associated with.
+    -This ensures that the scraper processes each skill individually and limits the number of job postings scraped to a maximum of 3 per skill.
+    -The code return a dictionary with all the results.
     
     '''
