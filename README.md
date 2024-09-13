@@ -118,7 +118,7 @@ Any contribution is accepted for this project we align with the MIT License for 
 
 ## Credits
 
-This project was originally created by a group team of Data Engineering Students for the subject Database Management.
+This project was originally created by a group team of Data Engineering Students for the subject Software Engineering.
 
 1. MARIO DAVID HERNÁNDEZ PANTOJA
 2. GERARDO HERNÁNDEZ WIDMAN
