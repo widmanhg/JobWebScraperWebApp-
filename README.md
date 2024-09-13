@@ -87,11 +87,11 @@ Defines the Docker enviroment for the Docker image of the Web App, specifying th
 
 After succesfully have cloned the repository, we do not recommend to build and run the containers, this because at the end of the project we had some problems making the webdrivers work with these, and as terraform doesn't need to use these, we didn't fix that, and we haven't yet. 
 
-But if you want to run the project locally use the Virtual Enviroment, turn it on by using this command: `.\venv\Scripts\activate`, and then run the scraper.py script, just make sure you're in the correct folder before running it. And that's it you can access to it by getting into your localhost into the port 5000, just copy this url into your Web Browser: `http://localhost:5000`.
+But if you want to run the project locally use the Virtual Enviroment, turn it on by using this command: `.\venv\Scripts\activate`, and then run the scraper.py script, just make sure you're in the correct folder before running it. And that's it you can access to it by getting into your localhost into the port 5000, just copy this url into your Web Browser: [http://localhost:5000](http://localhost:5000).
 
 Once you are into the Web App, you will see a welcome page, hit the start button and it will redirect you to the home page, once there, you could see the navigation bar, and below the query and results section, in the query section you just have to write and select your preferences and hit the button submit once you've finished. Then the page will refresh and the jobs must appear into the results section. The other pages from the navigation bar are just info pages for convention, you can ignore them if you want to.
 
-Also, the terraform scripts aren't here, you can see them into this repository: `https://github.com/LuisMichelP/Terraform-AWS-EC2`. Here you could see the scripts used for the deployment.
+Also, the terraform scripts aren't here, you can see them into this repository: [https://github.com/LuisMichelP/Terraform-AWS-EC2](https://github.com/LuisMichelP/Terraform-AWS-EC2). Here you could see the scripts used for the deployment.
 
 ## Expectations for future
 
